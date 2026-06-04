@@ -14,20 +14,20 @@ const TEMPLATES = [
   {
     type: 'COMPLETED_TUTORIAL',
     label: 'Completed Tutorial',
-    icon: <School />,
-    placeholder: 'e.g., Completed React tutorial on building a todo app',
+    icon: <School fontSize="small" />,
+    placeholder: 'e.g., Completed the React Hooks tutorial and built a todo app with useState and useEffect',
   },
   {
     type: 'NEW_SKILL',
     label: 'Learned New Skill',
-    icon: <Star />,
-    placeholder: 'e.g., Learned Docker containerization',
+    icon: <Star fontSize="small" />,
+    placeholder: 'e.g., Learned Docker containerization and deployed my first containerized application',
   },
   {
     type: 'TIME_SPENT',
-    label: 'Time Spent Learning',
-    icon: <Timer />,
-    placeholder: 'e.g., Spent 5 hours learning Python data structures',
+    label: 'Time Spent',
+    icon: <Timer fontSize="small" />,
+    placeholder: 'e.g., Spent 5 hours studying Python data structures and algorithms',
   },
 ];
 
@@ -56,7 +56,7 @@ const CreateProgressPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!content.trim()) {
-      setError('Please fill in the progress content');
+      setError('Please describe what you learned');
       return;
     }
     setSubmitting(true);
@@ -67,10 +67,10 @@ const CreateProgressPage = () => {
         skillCategory: skillCategory || null,
         content: content.trim(),
       });
-      toast.success('Progress update added!');
+      toast.success('Progress logged!');
       navigate('/my-learning');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create progress update');
+      setError(err.response?.data?.message || 'Failed to log progress');
     } finally {
       setSubmitting(false);
     }
@@ -78,55 +78,97 @@ const CreateProgressPage = () => {
 
   return (
     <Box sx={{ maxWidth: 680, mx: 'auto', py: 3, px: 2 }}>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+      <Typography variant="h5" fontWeight={700} gutterBottom sx={{ letterSpacing: '-0.02em' }}>
         Log Learning Progress
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={3}>
-        Share your learning journey with predefined templates
+        Track your growth using a predefined template
       </Typography>
 
       <Card>
-        <CardContent sx={{ p: 3 }}>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+              {error}
+            </Alert>
+          )}
 
           <Box component="form" onSubmit={handleSubmit}>
-            <FormControl component="fieldset" sx={{ mb: 3 }}>
-              <FormLabel component="legend">Progress Type</FormLabel>
+            {/* Template Selection */}
+            <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
+              <FormLabel
+                component="legend"
+                sx={{ fontWeight: 700, fontSize: '0.875rem', mb: 1.5, color: 'text.primary', '&.Mui-focused': { color: 'text.primary' } }}
+              >
+                Progress Type
+              </FormLabel>
               <RadioGroup
-                row
                 value={templateType}
                 onChange={(e) => setTemplateType(e.target.value)}
+                sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}
               >
                 {TEMPLATES.map((t) => (
-                  <FormControlLabel
+                  <Box
                     key={t.type}
-                    value={t.type}
-                    control={<Radio />}
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        {t.icon}
+                    onClick={() => setTemplateType(t.type)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 2,
+                      py: 1.25,
+                      border: '2px solid',
+                      borderColor: templateType === t.type ? 'primary.main' : 'divider',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      bgcolor: templateType === t.type ? 'action.selected' : 'transparent',
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        borderColor: 'primary.light',
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <Radio
+                      value={t.type}
+                      size="small"
+                      sx={{ p: 0, mr: 0 }}
+                      checked={templateType === t.type}
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: templateType === t.type ? 'primary.main' : 'text.secondary' }}>
+                      {t.icon}
+                      <Typography variant="body2" fontWeight={600}>
                         {t.label}
-                      </Box>
-                    }
-                  />
+                      </Typography>
+                    </Box>
+                  </Box>
                 ))}
               </RadioGroup>
             </FormControl>
 
+            {/* Content Field */}
             <TextField
               fullWidth
               multiline
-              rows={3}
+              rows={4}
               label={selectedTemplate?.label}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder={selectedTemplate?.placeholder}
-              sx={{ mb: 2 }}
+              sx={{ mb: 3 }}
+              inputProps={{ maxLength: 1000 }}
+              helperText={`${content.length}/1000`}
             />
 
-            <FormControl component="fieldset" sx={{ mb: 3 }}>
-              <FormLabel component="legend">Skill Category (optional)</FormLabel>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+            {/* Skill Category Chips */}
+            <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
+              <FormLabel
+                component="legend"
+                sx={{ fontWeight: 700, fontSize: '0.875rem', mb: 1.5, color: 'text.primary', '&.Mui-focused': { color: 'text.primary' } }}
+              >
+                Skill Category (optional)
+              </FormLabel>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                 {SKILL_CATEGORIES.map((cat) => (
                   <Chip
                     key={cat}
@@ -135,6 +177,10 @@ const CreateProgressPage = () => {
                     color={skillCategory === cat ? 'primary' : 'default'}
                     onClick={() => setSkillCategory(skillCategory === cat ? '' : cat)}
                     clickable
+                    sx={{
+                      transition: 'all 0.15s ease',
+                      '&:hover': { transform: 'translateY(-1px)' },
+                    }}
                   />
                 ))}
               </Box>
@@ -146,8 +192,19 @@ const CreateProgressPage = () => {
               fullWidth
               size="large"
               disabled={submitting || !content.trim()}
+              sx={{
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 700,
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #1976d2, #1565c0)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #1565c0, #0d47a1)',
+                  boxShadow: '0 6px 20px rgba(25,118,210,0.4)',
+                },
+              }}
             >
-              {submitting ? <CircularProgress size={24} /> : 'Log Progress'}
+              {submitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Log Progress'}
             </Button>
           </Box>
         </CardContent>
