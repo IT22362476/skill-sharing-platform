@@ -24,6 +24,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.isPublic = true ORDER BY p.createdAt DESC")
     Page<Post> findPublicFeed(Pageable pageable);
 
+    @Query("SELECT p FROM Post p WHERE p.isPublic = true AND p.userId != :excludeUserId ORDER BY p.createdAt DESC")
+    Page<Post> findDiscoverFeed(@Param("excludeUserId") Long excludeUserId, Pageable pageable);
+
     @Query("SELECT p FROM Post p WHERE " +
            "(:skillCategory IS NULL OR p.skillCategory = :skillCategory) AND " +
            "(:keyword IS NULL OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
