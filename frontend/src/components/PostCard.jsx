@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card, CardHeader, CardContent, CardActions,
-  Avatar, Typography, IconButton, Box, Chip, Collapse, Tooltip
+  Avatar, Typography, IconButton, Box, Chip, Tooltip
 } from '@mui/material';
 import {
-  Favorite, FavoriteBorder, Comment as CommentIcon, Delete,
-  ExpandMore, ExpandLess
+  Favorite, FavoriteBorder, Comment as CommentIcon, Delete
 } from '@mui/icons-material';
 import { postAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -32,7 +31,7 @@ const PostCard = ({ post, onDelete, onLikeToggle }) => {
   const [liked, setLiked] = useState(post.likedByCurrentUser);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [deleting, setDeleting] = useState(false);
-  const [expandedMedia, setExpandedMedia] = useState(false);
+
 
   const isOwner = user && user.id === post.userId;
 
@@ -161,73 +160,53 @@ const PostCard = ({ post, onDelete, onLikeToggle }) => {
       </CardContent>
 
       {hasMedia && (
-        <>
-          <Box
-            sx={{ px: 2, pb: 1 }}
-            onClick={(e) => { e.stopPropagation(); setExpandedMedia(!expandedMedia); }}
-          >
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1,
+            px: 2,
+            pb: 2,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {post.mediaList.map((media, index) => (
             <Box
+              key={media.id}
               sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.5,
-                color: 'primary.main',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                py: 0.25,
-                '&:hover': { textDecoration: 'underline' },
+                width: media.type === 'VIDEO' ? '100%' : 'calc(33.333% - 8px)',
+                minWidth: media.type === 'VIDEO' ? 'unset' : 80,
+                borderRadius: 2,
+                overflow: 'hidden',
+                position: 'relative',
               }}
             >
-              {expandedMedia ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
-              {expandedMedia ? 'Hide media' : `View ${post.mediaList.length} media file${post.mediaList.length > 1 ? 's' : ''}`}
-            </Box>
-          </Box>
-          <Collapse in={expandedMedia}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 1,
-                px: 2,
-                pb: 2,
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {post.mediaList.map((media) => (
-                <Box
-                  key={media.id}
-                  sx={{
-                    width: media.type === 'VIDEO' ? '100%' : 'calc(33.333% - 8px)',
-                    minWidth: media.type === 'VIDEO' ? 'unset' : 80,
-                    borderRadius: 2,
-                    overflow: 'hidden',
+              {media.type === 'VIDEO' ? (
+                <video
+                  src={media.url}
+                  controls
+                  style={{ width: '100%', borderRadius: 8, maxHeight: 360, display: 'block' }}
+                />
+              ) : (
+                <img
+                  src={media.url}
+                  alt={`Post media ${index + 1}`}
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    height: 160,
+                    objectFit: 'cover',
+                    borderRadius: 8,
+                    display: 'block',
+                    transition: 'transform 0.2s ease',
                   }}
-                >
-                  {media.type === 'VIDEO' ? (
-                    <video
-                      src={media.url}
-                      controls
-                      style={{ width: '100%', borderRadius: 8, maxHeight: 300, display: 'block' }}
-                    />
-                  ) : (
-                    <img
-                      src={media.url}
-                      alt="Post media"
-                      style={{
-                        width: '100%',
-                        height: 140,
-                        objectFit: 'cover',
-                        borderRadius: 8,
-                        display: 'block',
-                      }}
-                    />
-                  )}
-                </Box>
-              ))}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                />
+              )}
             </Box>
-          </Collapse>
-        </>
+          ))}
+        </Box>
       )}
 
       <CardActions disableSpacing sx={{ pt: 0.5, pb: 1, px: 2 }}>

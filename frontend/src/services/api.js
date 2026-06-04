@@ -52,6 +52,7 @@ export const userAPI = {
 // --- Posts ---
 export const postAPI = {
   getFeed: (page = 0, size = 10) => api.get(`/posts?page=${page}&size=${size}`),
+  getDiscoverFeed: (page = 0, size = 10) => api.get(`/posts/discover?page=${page}&size=${size}`),
   getPost: (id) => api.get(`/posts/${id}`),
   createPost: (formData) => api.post('/posts', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

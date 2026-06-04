@@ -86,14 +86,24 @@ public class PostService {
 
         if (userId != null) {
             List<Long> followedIds = userService.getFollowedUserIds(userId);
-            if (!followedIds.isEmpty()) {
-                followedIds.add(userId); // Include own posts
-                Page<Post> postsPage = postRepository.findFeed(followedIds, pageable);
-                return postsPage.map(post -> PostDto.fromEntity(post,
-                        likeRepository.existsByPostIdAndUserId(post.getId(), userId)));
-            }
+            // Always include the user's own posts
+            followedIds.add(userId);
+            Page<Post> postsPage = postRepository.findFeed(followedIds, pageable);
+            return postsPage.map(post -> PostDto.fromEntity(post,
+                    likeRepository.existsByPostIdAndUserId(post.getId(), userId)));
         }
 
+        // Anonymous users see the public feed
+        Page<Post> postsPage = postRepository.findPublicFeed(pageable);
+        return postsPage.map(post -> PostDto.fromEntity(post, false));
+    }
+
+    /**
+     * Public / discover feed — shows all public posts regardless of follows.
+     * Used for the "Discover" tab where users can browse content before following anyone.
+     */
+    public Page<PostDto> getPublicFeed(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> postsPage = postRepository.findPublicFeed(pageable);
         Long finalUserId = userId;
         return postsPage.map(post -> PostDto.fromEntity(post,

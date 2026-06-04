@@ -15,8 +15,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    @Query("SELECT p FROM Post p WHERE p.userId IN :userIds ORDER BY p.createdAt DESC")
+    Page<Post> findFeed(@Param("userIds") List<Long> userIds, Pageable pageable);
+
     @Query("SELECT p FROM Post p WHERE p.isPublic = true OR p.userId IN :followedUserIds ORDER BY p.createdAt DESC")
-    Page<Post> findFeed(@Param("followedUserIds") List<Long> followedUserIds, Pageable pageable);
+    Page<Post> findMixedFeed(@Param("followedUserIds") List<Long> followedUserIds, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.isPublic = true ORDER BY p.createdAt DESC")
     Page<Post> findPublicFeed(Pageable pageable);

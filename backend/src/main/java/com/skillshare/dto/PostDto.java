@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -29,6 +31,10 @@ public class PostDto {
     private LocalDateTime updatedAt;
 
     public static PostDto fromEntity(Post post, boolean likedByCurrentUser) {
+        List<MediaDto> mediaDtos = post.getMediaList() != null
+                ? post.getMediaList().stream().map(MediaDto::fromEntity).collect(Collectors.toList())
+                : Collections.emptyList();
+
         return PostDto.builder()
                 .id(post.getId())
                 .content(post.getContent())
@@ -38,6 +44,7 @@ public class PostDto {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getComments() != null ? post.getComments().size() : 0)
                 .likedByCurrentUser(likedByCurrentUser)
+                .mediaList(mediaDtos)
                 .skillCategory(post.getSkillCategory())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())

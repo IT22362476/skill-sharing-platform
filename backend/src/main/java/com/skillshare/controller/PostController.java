@@ -43,6 +43,15 @@ public class PostController {
         return ResponseEntity.ok(feed);
     }
 
+    @GetMapping("/discover")
+    public ResponseEntity<Page<PostDto>> getDiscoverFeed(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<PostDto> feed = postService.getPublicFeed(userId, page, size);
+        return ResponseEntity.ok(feed);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<Page<PostDto>> searchPosts(
             @AuthenticationPrincipal Long userId,
