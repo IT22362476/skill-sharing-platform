@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import {
   Card, CardContent, Typography, Chip, Box, LinearProgress,
-  Button, Collapse, Divider
+  Button, Collapse, Divider, Select, MenuItem, TextField,
+  FormControl, InputLabel, CircularProgress
 } from '@mui/material';
-import { CalendarToday, MenuBook, Link as LinkIcon, ExpandMore, ExpandLess } from '@mui/icons-material';
+import {
+  CalendarToday, MenuBook, Link as LinkIcon,
+  ExpandMore, ExpandLess, Save
+} from '@mui/icons-material';
 
 const STATUS_CONFIG = {
   NOT_STARTED: { color: 'default', progress: 0, label: 'Not Started' },
@@ -18,7 +22,34 @@ const formatDate = (date) => {
 
 const PlanCard = ({ plan, onUpdate }) => {
   const [expanded, setExpanded] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
+  // Status update state
+  const [selectedStatus, setSelectedStatus] = useState(plan.status);
+  const [progressNotes, setProgressNotes] = useState(plan.progressNotes || '');
+  const [showUpdater, setShowUpdater] = useState(false);
+
   const config = STATUS_CONFIG[plan.status] || STATUS_CONFIG.NOT_STARTED;
+
+  const handleSaveStatus = async () => {
+    if (selectedStatus === plan.status && progressNotes === (plan.progressNotes || '')) {
+      setShowUpdater(false);
+      return;
+    }
+    setUpdating(true);
+    try {
+      await onUpdate(plan.id, selectedStatus, progressNotes);
+      setShowUpdater(false);
+    } catch (err) {
+      console.error('Failed to update plan');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const hasDetails = (plan.topics && plan.topics.length > 0) ||
+    (plan.resources && plan.resources.length > 0) ||
+    plan.progressNotes;
 
   return (
     <Card sx={{ mb: 2 }}>
@@ -70,27 +101,106 @@ const PlanCard = ({ plan, onUpdate }) => {
           </Typography>
         </Box>
 
-        {/* Expand button */}
-        {((plan.topics && plan.topics.length > 0) || (plan.resources && plan.resources.length > 0) || plan.progressNotes) && (
+        {/* Update Status Button */}
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setShowUpdater(!showUpdater)}
+          sx={{ mb: 1.5, fontSize: '0.75rem' }}
+        >
+          {showUpdater ? 'Cancel' : 'Update Status'}
+        </Button>
+
+        {/* Inline Status Updater */}
+        <Collapse in={showUpdater}>
+          <Box
+            sx={{
+              p: 2,
+              mb: 2,
+              bgcolor: 'action.hover',
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+              Update Progress
+            </Typography>
+
+            <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={selectedStatus}
+                label="Status"
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                {Object.entries(STATUS_CONFIG).map(([key, val]) => (
+                  <MenuItem key={key} value={key}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          bgcolor: val.color === 'default' ? 'grey.400' :
+                                   val.color === 'warning' ? 'warning.main' : 'success.main',
+                        }}
+                      />
+                      {val.label}
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              size="small"
+              multiline
+              rows={2}
+              label="Progress Notes (optional)"
+              value={progressNotes}
+              onChange={(e) => setProgressNotes(e.target.value)}
+              placeholder="What did you accomplish?"
+              sx={{ mb: 1.5 }}
+            />
+
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleSaveStatus}
+              disabled={updating}
+              startIcon={updating ? <CircularProgress size={16} /> : <Save />}
+              fullWidth
+            >
+              {updating ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </Box>
+        </Collapse>
+
+        {/* Expand details */}
+        {hasDetails && (
           <>
             <Divider sx={{ mb: 1.5 }} />
             <Button
               size="small"
               onClick={() => setExpanded(!expanded)}
               endIcon={expanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
-              sx={{ color: 'text.secondary', fontSize: '0.8rem', p: 0, '&:hover': { background: 'none', color: 'primary.main' } }}
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.8rem',
+                p: 0,
+                '&:hover': { background: 'none', color: 'primary.main' },
+              }}
             >
-              {expanded ? 'Less details' : `More details`}
+              {expanded ? 'Less details' : 'View topics & resources'}
             </Button>
 
             <Collapse in={expanded}>
               <Box sx={{ mt: 1.5 }}>
                 {plan.topics && plan.topics.length > 0 && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography
-                      variant="caption"
-                      fontWeight={700}
-                      color="text.secondary"
+                    <Typography variant="caption" fontWeight={700} color="text.secondary"
                       sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     >
                       <MenuBook sx={{ fontSize: '0.85rem' }} /> Topics
@@ -104,11 +214,8 @@ const PlanCard = ({ plan, onUpdate }) => {
                 )}
 
                 {plan.resources && plan.resources.length > 0 && (
-                  <Box sx={{ mb: plan.progressNotes ? 2 : 0 }}>
-                    <Typography
-                      variant="caption"
-                      fontWeight={700}
-                      color="text.secondary"
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary"
                       sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     >
                       <LinkIcon sx={{ fontSize: '0.85rem' }} /> Resources
@@ -123,19 +230,15 @@ const PlanCard = ({ plan, onUpdate }) => {
                           color="primary"
                           onClick={() => resource.startsWith('http') && window.open(resource, '_blank')}
                           clickable={resource.startsWith('http')}
-                          sx={{ cursor: resource.startsWith('http') ? 'pointer' : 'default' }}
                         />
                       ))}
                     </Box>
                   </Box>
                 )}
 
-                {plan.progressNotes && (
+                {plan.progressNotes && !showUpdater && (
                   <Box>
-                    <Typography
-                      variant="caption"
-                      fontWeight={700}
-                      color="text.secondary"
+                    <Typography variant="caption" fontWeight={700} color="text.secondary"
                       sx={{ display: 'block', mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     >
                       Progress Notes

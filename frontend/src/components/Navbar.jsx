@@ -112,14 +112,25 @@ const Navbar = () => {
 
         {/* Nav links */}
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 0.25 }}>
-          <Button
-            sx={navLinkSx('/')}
-            startIcon={<Home sx={{ fontSize: '1rem !important' }} />}
-            component={RouterLink}
-            to="/"
-          >
-            Feed
-          </Button>
+          {user ? (
+            <Button
+              sx={navLinkSx('/')}
+              startIcon={<Home sx={{ fontSize: '1rem !important' }} />}
+              component={RouterLink}
+              to="/"
+            >
+              Feed
+            </Button>
+          ) : (
+            <Button
+              sx={navLinkSx('/welcome')}
+              startIcon={<Home sx={{ fontSize: '1rem !important' }} />}
+              component={RouterLink}
+              to="/welcome"
+            >
+              Home
+            </Button>
+          )}
           {user && (
             <Button
               sx={navLinkSx('/create-post')}
@@ -130,14 +141,16 @@ const Navbar = () => {
               <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>New Post</Box>
             </Button>
           )}
-          <Button
-            sx={navLinkSx('/search')}
-            startIcon={<Search sx={{ fontSize: '1rem !important' }} />}
-            component={RouterLink}
-            to="/search"
-          >
-            <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>Search</Box>
-          </Button>
+          {user && (
+            <Button
+              sx={navLinkSx('/search')}
+              startIcon={<Search sx={{ fontSize: '1rem !important' }} />}
+              component={RouterLink}
+              to="/search"
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>Search</Box>
+            </Button>
+          )}
         </Box>
 
         {/* Right actions */}
