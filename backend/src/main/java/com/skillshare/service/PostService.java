@@ -104,7 +104,14 @@ public class PostService {
      */
     public Page<PostDto> getPublicFeed(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Post> postsPage = postRepository.findPublicFeed(pageable);
+        Page<Post> postsPage;
+        if (userId != null) {
+            // Discover: show everyone's public posts EXCEPT the current user's
+            postsPage = postRepository.findDiscoverFeed(userId, pageable);
+        } else {
+            // Anonymous: show all public posts
+            postsPage = postRepository.findPublicFeed(pageable);
+        }
         Long finalUserId = userId;
         return postsPage.map(post -> PostDto.fromEntity(post,
                 finalUserId != null && likeRepository.existsByPostIdAndUserId(post.getId(), finalUserId)));
