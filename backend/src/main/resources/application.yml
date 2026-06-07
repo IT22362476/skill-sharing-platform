@@ -6,10 +6,16 @@ spring:
     name: skill-sharing-platform
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/skillshare
-    username: SkillUser                    # ← Your new role
-    password: 1342denuwan                 # ← Your new password
+    url: jdbc:postgresql://ep-red-grass-aortsj0f.c-2.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_bH4TvI0YadRz
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
@@ -26,6 +32,8 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+    schemas: public
+    default-schema: public
 
   servlet:
     multipart:
@@ -56,9 +64,6 @@ app:
 
   upload:
     dir: ${UPLOAD_DIR:./uploads}
-
-cors:
-  allowed-origins: http://localhost:3000
 
 logging:
   level:
